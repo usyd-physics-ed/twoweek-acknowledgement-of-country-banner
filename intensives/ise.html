@@ -1,0 +1,218 @@
+<!DOCTYPE html><html><head>
+    <script src="https://cdn.jsdelivr.net/npm/p5@1.4.1/lib/p5.js"></script>
+    <meta charset="utf-8">
+    <meta http-equiv="cache-control" content="no-cache"/>
+    <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width:100%;
+      height:100vh;
+    }
+    canvas {
+      display: block;
+    }
+
+    @font-face {
+      font-family: 'theFont';
+      src: url(apercu_medium_pro.otf);
+    }
+
+    ::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
+      color: #000;
+      opacity: 1; /* Firefox */
+    }
+
+    :-ms-input-placeholder { /* Internet Explorer 10-11 */
+      color: #000;
+    }
+
+    ::-ms-input-placeholder { /* Microsoft Edge */
+      color: #000;
+    }
+
+    </style>
+    
+    
+  </head>
+  <body>  
+  
+<p id="p5_loading" style="display:none;"> </p>
+<script>
+  //variables here
+  let myFont;
+  let aFlagAlphaRB = 0;
+  let aFlagYypos;
+  let aFlagYyposEndPoint;
+  let sunD;
+  let sunDStarting;
+  let easing = 0.05;
+  let sunColor;
+  let fromColor, toColor;
+  let fontSize;
+  let showText = false;
+  let timer = 0;
+  let textstage = 0;
+
+  let parOne = "The University of Sydney acknowledges the custodians and cultural authorities of the lands on which it operates.";
+  let parTwo = "The lands of the Gadigal, Deerubbin, Dharug, Kamilaroi, Wiljali, Wangal, Tharawal, Bundjalung, Kur-ing-gai, Cammeraygal and Wiradjuri peoples.";
+  let parThree = "We pay respects to their Elders, knowledge systems, customs and lores.";
+  let parFour = "We acknowledge and value the important role Aboriginal and Torres Strait Islander staff, students and communities bring to the University of Sydney.";
+
+  let beginTimer = 0;
+  let windowResizeAmnt = 0;
+  let textAlpha = 255;
+
+  let readerText = "There is a banner with a visual of two rectangles. One red at the bottom and one black at the top, like the aboriginal flag. A yellow circle animates upward into the foreground of two rectangles. The yellow circle expands filling the banner whilst it also changes colour to the Sydney university orange colour. An acknowledgement of country text is animated in this banner that reads: " + parOne + "  "  + parTwo + "  "  + parThree + "  "  + parFour;
+
+  //add the aoc start and end dates for the specific intensive
+  //this will be first two weeks of the course
+  //the date format is in american standard y/m/d/t
+  //this needs to be updated each year
+  const intensiveStart = "2023-08-21T01:00:00"
+  const intensiveEnd = "2023-09-03T23:00:00"
+
+
+  let aocShowing = false
+
+  function preload(){
+    myFont = loadFont('./apercu_medium_pro.otf');
+  }
+
+  function setup() {
+    createCanvas(window.innerWidth, window.innerHeight);
+    noStroke();
+    aFlagYypos = height + (height/3*2)/2;
+    aFlagYyposEndPoint = height/2;
+    sunD = height/3*2;
+    sunDStarting = sunD;
+    sunColor = color(255,255,0);
+    fromColor = color(255,255,0);
+    toColor = color(240,78,35);
+    let leftPadding = (width-616)/2;
+    if(leftPadding < 0) leftPadding = 0;
+    textFont(myFont);
+    showText = false
+     //these are date checks if true they will run the sceen reader
+     //function and also switch the showAOC boolean
+     //check for semester one aoc dates
+     checkDateAndRun(intensiveStart, intensiveEnd, describeAOC);
+     //if the showAOC boolean is not switched we hide the body of the iframe
+     //so it will not show on the page
+     //if we extend this to other days then we will need to check all dates
+     if(!aocShowing) document.body.style.display = "none";
+  }
+
+  function draw() {
+    // date checks are done in setup and booleans are switched
+    if(aocShowing) showAOC();
+  }
+
+  function windowResized() {
+     windowResizeAmnt++
+     if(windowResizeAmnt > 5){
+     resizeCanvas(window.innerWidth, window.innerHeight);
+     aFlagYypos = height/2;
+     aFlagYyposEndPoint = aFlagYypos;
+     let leftPadding = (width-616)/2;
+     if(leftPadding < 0) leftPadding = 0;
+     }
+  } 
+
+  function checkDateAndRun(start, end, callback) {
+    const currentDate = new Date();
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+   if (currentDate >= startDate && currentDate <= endDate) {
+     callback();
+   }
+  }
+
+  function describeAOC(){
+    describe(readerText)
+    aocShowing = true;
+  }
+
+  function showAOC(){
+    beginTimer++;
+    
+    // if(beginTimer > 10 && width < 1) resizeCanvas(window.innerWidth, window.innerHeight);
+    if(beginTimer > 20 && beginTimer < 22) resizeCanvas(window.innerWidth, window.innerHeight);
+    if(beginTimer < 99) {
+      showText = false;
+      aFlagYypos = window.innerHeight + (window.innerHeight/3*2)/2;
+      aFlagYyposEndPoint = window.innerHeight/2;
+      sunD = window.innerHeight/3*2;
+      sunDStarting = sunD;
+    }
+
+    if(beginTimer > 22){
+    //fade in Aboriginal flag
+    textSize(fontSize);
+    fill(0,aFlagAlphaRB);
+    rect(0,0,width,height/2);
+    fill(255,0,0,aFlagAlphaRB);
+    rect(0,height/2,width,height/2);
+    if(aFlagAlphaRB < 255) aFlagAlphaRB+= 1.5;
+    
+    }
+    fill(sunColor);
+    let dy = aFlagYyposEndPoint - aFlagYypos;
+    circle(width/2, aFlagYypos,sunD);
+    if(showText) background(toColor);
+    //animate the sun up onto the flag
+    if(aFlagAlphaRB > 125 && beginTimer > 100) aFlagYypos += dy * easing;
+
+    //sun expands and lerps to USyd colour
+    if(aFlagYypos-aFlagYyposEndPoint < 0.5 && sunD < width+100) {
+      sunD+= 10.5;
+      let amt = (sunD - sunDStarting)/((width+100)-sunDStarting);
+      sunColor = lerpColor(fromColor,toColor,amt);
+    }
+
+    if(sunD >= width+100) showText = true;
+    if(showText){
+      fill(255, textAlpha);
+      textAlign(CENTER,CENTER);
+      aFlagYypos = height + (height/3*2)/2;
+      if(textstage == 0){
+        fontSize = height*0.13;
+        if(timer >10) text(parOne,width*0.125,height*0.08,width*0.75,height*0.75);
+        timer++;
+        if(timer > 390){
+          textstage = 1;
+          background(toColor);
+        }
+      } else if(textstage == 1){
+        fontSize = height*0.13;
+        timer++;
+        if(timer >400)text(parTwo,width*0.125,height*0.08,width*0.75,height*0.75);
+        if(timer > 900){
+          textstage = 2;
+          background(toColor);
+        }
+      } else if(textstage == 2){
+        fontSize = height*0.13;
+        timer++;
+        if(timer >910)text(parThree,width*0.125,height*0.08,width*0.75,height*0.75);
+        if(timer > 1200){
+          textstage = 3;
+          background(toColor);
+        }
+      } else if(textstage == 3){
+        fontSize = height*0.13;
+        timer++;
+        
+        if(timer >1210){
+          text(parFour,width*0.125,height*0.08,width*0.75,height*0.75);
+        }
+        if(timer > 1700) {
+          textAlpha-=6;
+          if(textAlpha < 10) document.body.style.display = "none";
+        }
+      }
+    }
+  }
+</script>
+</body>
+</html>
