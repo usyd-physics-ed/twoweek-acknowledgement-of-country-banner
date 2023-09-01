@@ -1,2 +1,2 @@
-# Inclusion and Diversity Banner
+# Two Week Acknowlegdment of Country Banner
 
